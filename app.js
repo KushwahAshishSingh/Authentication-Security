@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const mongoose = require("mongoose");
 const express = require("express");
 const ejs = require("ejs");
@@ -17,7 +19,7 @@ const SocialAppSchema = new mongoose.Schema({
   email: String,
   password: String,
 });
-const secret = "this is my new app";
+const secret = process.env.SECRET;
 SocialAppSchema.plugin(encrypt, {
   secret: secret,
   encryptedFields: ["password"],

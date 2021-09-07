@@ -1,11 +1,11 @@
-require("dotenv").config();
+//require("dotenv").config();
 
 const mongoose = require("mongoose");
 const express = require("express");
 const ejs = require("ejs");
 const bodyparser = require("body-parser");
-const encrypt = require("mongoose-encryption");
 const app = express();
+const md5 = require("md5");
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 app.use(bodyparser.urlencoded({ extended: true }));
@@ -19,11 +19,13 @@ const SocialAppSchema = new mongoose.Schema({
   email: String,
   password: String,
 });
-const secret = process.env.SECRET;
-SocialAppSchema.plugin(encrypt, {
-  secret: secret,
-  encryptedFields: ["password"],
-});
+
+// the code reffer to 1st level encription
+// const secret = process.env.SECRET;
+// SocialAppSchema.plugin(encrypt, {
+//   secret: secret,
+//   encryptedFields: ["password"],
+// });
 
 const SocialModel = mongoose.model("Userdata", SocialAppSchema);
 
@@ -46,7 +48,9 @@ app.get("/submit", function (request, response) {
 app.post("/register", async (request, response) => {
   const registerData = new SocialModel({
     email: request.body.username,
-    password: request.body.password,
+    //password: request.body.password,
+    //save password using md5
+    password: md5(request.body.password),
   });
   try {
     await registerData.save();
@@ -58,7 +62,9 @@ app.post("/register", async (request, response) => {
 
 app.post("/login", async (request, response) => {
   const userEmail = request.body.username;
-  const userPassword = request.body.password;
+  //const userPassword = request.body.password;
+  // make a copy of password using md5
+  const userPassword = md5(request.body.password);
 
   SocialModel.findOne({ email: userEmail }, function (err, foundUser) {
     if (err) {
@@ -67,7 +73,7 @@ app.post("/login", async (request, response) => {
       if (foundUser) {
         if (foundUser.password === userPassword) {
           response.render("secrets");
-        }
+        } else response.send("you have entered invalid password");
       }
     }
   });
